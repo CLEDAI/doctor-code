@@ -1,0 +1,236 @@
+[SDK_README_UPDATED.md](https://github.com/user-attachments/files/24387732/SDK_README_UPDATED.md)
+# DoctorCode SDK
+
+AI-powered error fixing for PHP and Laravel applications.
+
+## Zero-Configuration Installation
+
+```bash
+composer require doctorcode/sdk
+```
+
+That's it! The SDK automatically integrates with your Laravel application through service provider auto-discovery.
+
+## How It Works
+
+1. **Install the SDK** - One command, no configuration files to edit
+2. **Register at [doctorcode.dev](https://doctorcode.dev)** - Create your free account
+3. **Add Your LLM API Keys** - Manage your Claude, OpenAI, Grok, or Gemini keys through the web dashboard
+4. **Done!** - All errors are automatically reported and analyzed by your chosen AI provider
+
+## Dashboard-Based Key Management
+
+Instead of editing `.env` files, manage your LLM provider API keys through the user-friendly web dashboard at [doctorcode.dev/dashboard](https://doctorcode.dev/dashboard).
+
+### Why Dashboard Management?
+
+- **Accessible to Everyone** - No need to edit configuration files
+- **Privacy-First** - Bring Your Own Keys (BYOK) model
+- **Multi-LLM Support** - Switch between Claude Sonnet 4, GPT-4o, Grok, and Gemini Pro
+- **Secure** - Keys encrypted at rest using Laravel encryption
+- **Multi-Application** - Manage keys for all your applications from one place
+
+### Adding Your LLM Keys
+
+1. Visit [doctorcode.dev/dashboard/api-keys](https://doctorcode.dev/dashboard/api-keys)
+2. Click "Add LLM Provider"
+3. Select your provider (Claude, OpenAI, Grok, or Gemini)
+4. Paste your API key
+5. Save - your applications will automatically use this key
+
+### Supported LLM Providers
+
+| Provider | Model | Key Format |
+|----------|-------|------------|
+| **Claude** | Sonnet 4 | `sk-ant-...` |
+| **OpenAI** | GPT-4o | `sk-...` |
+| **Grok** | Grok-2 | `xai-...` |
+| **Gemini** | Pro | `AIza...` |
+
+## Features
+
+### Automatic Error Reporting
+
+All uncaught PHP exceptions are automatically captured and sent to DoctorCode for analysis. No manual reporting required.
+
+### AI-Powered Fix Generation
+
+Choose your preferred LLM provider. Each error is analyzed and a working fix is generated in ~30 seconds.
+
+### Privacy-First Architecture
+
+- **BYOK (Bring Your Own Keys)** - You provide your own LLM API keys
+- **No Code Uploaded** - Only error messages and stack traces are sent
+- **Encrypted Storage** - All API keys encrypted using Laravel encryption
+- **Full Control** - Manage and revoke keys anytime through the dashboard
+
+### Smart Error Detection
+
+The SDK automatically filters out common exceptions like:
+- Authentication errors
+- Validation failures
+- 404 Not Found errors
+- Method Not Allowed errors
+
+### Environment-Aware
+
+By default, errors are only reported in `production` environment. You can customize this behavior.
+
+## Requirements
+
+- PHP 8.2 or higher
+- Laravel 11.0 or higher
+
+## Advanced Configuration (Optional)
+
+If you need to customize the SDK behavior, publish the configuration file:
+
+```bash
+php artisan vendor:publish --tag=doctorcode-config
+```
+
+This creates `config/doctorcode.php` with these options:
+
+```php
+return [
+    // Base URL for DoctorCode API
+    'api_url' => env('DOCTORCODE_API_URL', 'https://doctorcode.dev/api'),
+
+    // Enable/disable error reporting
+    'enabled' => env('DOCTORCODE_ENABLED', true),
+
+    // Report errors in local environment
+    'report_local' => env('DOCTORCODE_REPORT_LOCAL', false),
+
+    // Exceptions to skip reporting
+    'dont_report' => [
+        \Illuminate\Auth\AuthenticationException::class,
+        \Illuminate\Validation\ValidationException::class,
+    ],
+];
+```
+
+## Manual Error Reporting
+
+You can manually report errors using the DoctorCode client:
+
+```php
+use DoctorCode\SDK\DoctorCodeClient;
+
+$doctorCode = app(DoctorCodeClient::class);
+
+try {
+    // Your code here
+} catch (\Exception $e) {
+    $doctorCode->reportError(
+        message: $e->getMessage(),
+        file: $e->getFile(),
+        line: $e->getLine(),
+        stackTrace: $e->getTraceAsString()
+    );
+
+    throw $e;
+}
+```
+
+## Getting Fix Suggestions
+
+```php
+use DoctorCode\SDK\DoctorCodeClient;
+
+$doctorCode = app(DoctorCodeClient::class);
+
+// Report an error and get the error ID
+$errorId = $doctorCode->reportError(
+    message: 'Call to undefined method',
+    file: 'app/Services/UserService.php',
+    line: 42,
+    stackTrace: $stackTrace
+);
+
+// Get AI-generated fix
+$fix = $doctorCode->getFixSuggestion($errorId);
+
+if ($fix['success']) {
+    echo "Suggested fix:\n";
+    echo $fix['fixed_code'];
+    echo "\n\nExplanation:\n";
+    echo $fix['explanation'];
+}
+```
+
+## How Error Analysis Works
+
+When an error occurs:
+
+1. **SDK captures the error** - Automatically through exception handler
+2. **Error sent to DoctorCode** - Encrypted connection to DoctorCode API
+3. **Your LLM key retrieved** - Platform fetches your chosen LLM provider key
+4. **AI analyzes the error** - Using Claude, GPT-4o, Grok, or Gemini
+5. **Fix generated** - Working code solution with explanation
+6. **Fix returned to you** - View in dashboard or via API
+
+## Cost Control
+
+Since you provide your own LLM API keys (BYOK model), you have complete control over costs:
+
+- **Claude API** - ~$0.003 per error fix (Sonnet 4)
+- **OpenAI API** - ~$0.002 per error fix (GPT-4o)
+- **Grok API** - ~$0.001 per error fix
+- **Gemini API** - Free tier available
+
+You can monitor your API usage directly through your LLM provider's dashboard.
+
+## Security Best Practices
+
+1. **Never commit API keys to version control**
+2. **Use dashboard to manage keys** - Easier than managing `.env` files
+3. **Rotate keys periodically** - Easy to update through dashboard
+4. **Use application-specific keys** - Different keys for different apps if needed
+5. **Monitor key usage** - Check `last_used_at` timestamp in dashboard
+
+## Community & Fix Sharing
+
+DoctorCode builds a knowledge base of fixes. When an error has been fixed before:
+
+- **Instant fixes** - No LLM call needed for known errors
+- **Improved accuracy** - Learn from community-validated solutions
+- **Cost savings** - Fewer LLM API calls
+
+## Troubleshooting
+
+### SDK Not Reporting Errors
+
+1. Check that you're in `production` environment (or set `DOCTORCODE_REPORT_LOCAL=true`)
+2. Verify you've added an LLM API key at [doctorcode.dev/dashboard](https://doctorcode.dev/dashboard)
+3. Check Laravel logs for any DoctorCode connection errors
+
+### "No LLM Keys Configured" Message
+
+Visit [doctorcode.dev/dashboard/api-keys](https://doctorcode.dev/dashboard/api-keys) and add your preferred LLM provider's API key.
+
+### Invalid API Key Format
+
+Make sure your API key matches the provider's format:
+- Claude: `sk-ant-api03-...`
+- OpenAI: `sk-...`
+- Grok: `xai-...`
+- Gemini: `AIza...`
+
+## Support
+
+- **Documentation**: [docs.doctorcode.dev](https://docs.doctorcode.dev)
+- **Issues**: [github.com/CLEDAI/doctor-code/issues](https://github.com/CLEDAI/doctor-code/issues)
+- **Dashboard**: [doctorcode.dev/dashboard](https://doctorcode.dev/dashboard)
+
+## License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## Contributing
+
+Contributions are welcome! Please see our contributing guidelines.
+
+---
+
+**Get Started**: [https://doctorcode.dev](https://doctorcode.dev)
