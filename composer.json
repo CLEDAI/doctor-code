@@ -1,0 +1,41 @@
+{
+    "name": "doctorcode/sdk",
+    "description": "AI-powered error detection and fixing for PHP applications. Automatically captures errors and provides intelligent fixes using Claude, GPT-4, Grok, or Gemini.",
+    "keywords": ["laravel", "error-tracking", "ai", "debugging", "error-fixing", "claude", "openai", "grok", "gemini"],
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "DoctorCode Team",
+            "email": "support@doctorcode.dev"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^11.0",
+        "guzzlehttp/guzzle": "^7.8"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0",
+        "orchestra/testbench": "^9.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "DoctorCode\\SDK\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "DoctorCode\\SDK\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "DoctorCode\\SDK\\DoctorCodeServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
